@@ -1,0 +1,314 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    cni.projectcalico.org/containerID: 230321fe40a63defd4791afb4b52653d545fb745ebb8c17a1f6615c0401cdf1b
+    cni.projectcalico.org/podIP: 172.21.212.76/32
+    cni.projectcalico.org/podIPs: 172.21.212.76/32
+    k8s.v1.cni.cncf.io/network-status: |-
+      [{
+          "name": "k8s-pod-network",
+          "ips": [
+              "172.21.212.76"
+          ],
+          "default": true,
+          "dns": {}
+      }]
+    openshift.io/scc: restricted-v2
+    prometheus.io/path: /metrics
+    prometheus.io/port: "8085"
+    prometheus.io/scrape: "true"
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+  creationTimestamp: "2024-06-11T15:46:48Z"
+  generateName: velero-db4789d6f-
+  labels:
+    app.kubernetes.io/component: server
+    app.kubernetes.io/instance: bcdr-data-protection-app
+    app.kubernetes.io/managed-by: oadp-operator
+    app.kubernetes.io/name: velero
+    component: velero
+    deploy: velero
+    openshift.io/oadp: "True"
+    pod-template-hash: db4789d6f
+  name: velero-db4789d6f-t52wz
+  namespace: oadp-velero
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: velero-db4789d6f
+    uid: 7957b9bc-befc-425a-80ac-9e752075b9dc
+  resourceVersion: "128143053"
+  uid: 5773d7de-8661-4ed4-a43d-b098a492a472
+spec:
+  containers:
+  - args:
+    - server
+    - --features=EnableCSI
+    - --fs-backup-timeout=4h
+    - --restore-resource-priorities=securitycontextconstraints,customresourcedefinitions,klusterletconfigs.config.open-cluster-management.io,managedcluster.cluster.open-cluster-management.io,namespaces,roles,rolebindings,clusterrolebindings,klusterletaddonconfig.agent.open-cluster-management.io,managedclusteraddon.addon.open-cluster-management.io,storageclasses,volumesnapshotclass.snapshot.storage.k8s.io,volumesnapshotcontents.snapshot.storage.k8s.io,volumesnapshots.snapshot.storage.k8s.io,datauploads.velero.io,persistentvolumes,persistentvolumeclaims,serviceaccounts,secrets,configmaps,limitranges,pods,replicasets.apps,clusterclasses.cluster.x-k8s.io,endpoints,services,-,clusterbootstraps.run.tanzu.vmware.com,clusters.cluster.x-k8s.io,clusterresourcesets.addons.cluster.x-k8s.io
+    - --disable-informer-cache=false
+    command:
+    - /velero
+    env:
+    - name: VELERO_SCRATCH_DIR
+      value: /scratch
+    - name: VELERO_NAMESPACE
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.namespace
+    - name: LD_LIBRARY_PATH
+      value: /plugins
+    - name: OPENSHIFT_IMAGESTREAM_BACKUP
+      value: "true"
+    image: registry.redhat.io/oadp/oadp-velero-rhel9@sha256:9ab6bd1c70cb1fb4a641ba977e9b8ebfa727109756091e2e74026f5ecdc9841f
+    imagePullPolicy: Always
+    name: velero
+    ports:
+    - containerPort: 8085
+      name: metrics
+      protocol: TCP
+    resources:
+      limits:
+        cpu: "3"
+        memory: 3Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      runAsNonRoot: true
+      runAsUser: 1000660000
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /plugins
+      name: plugins
+    - mountPath: /scratch
+      name: scratch
+    - mountPath: /etc/ssl/certs
+      name: certs
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-nmff2
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  imagePullSecrets:
+  - name: velero-dockercfg-tn8zx
+  initContainers:
+  - image: registry.redhat.io/oadp/oadp-velero-plugin-rhel9@sha256:8cf7db63e1a44782d7b069e2aa430230f3eede5713c4b1875f85293ec0231b46
+    imagePullPolicy: Always
+    name: openshift-velero-plugin
+    resources:
+      limits:
+        cpu: "3"
+        memory: 3Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      runAsNonRoot: true
+      runAsUser: 1000660000
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /target
+      name: plugins
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-nmff2
+      readOnly: true
+  - image: registry.redhat.io/oadp/oadp-velero-plugin-for-aws-rhel9@sha256:da4b96d00c3399eb1e988fe32177884f6c6c6050415189c1d9f8fc997e043adf
+    imagePullPolicy: Always
+    name: velero-plugin-for-aws
+    resources:
+      limits:
+        cpu: "3"
+        memory: 3Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      runAsNonRoot: true
+      runAsUser: 1000660000
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /target
+      name: plugins
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-nmff2
+      readOnly: true
+  - image: registry.redhat.io/oadp/oadp-velero-plugin-for-csi-rhel9@sha256:095c5131f86c0c87b3e521d1636cf89d671c0c660d1b40b32baf210e7250776e
+    imagePullPolicy: Always
+    name: velero-plugin-for-csi
+    resources:
+      limits:
+        cpu: "3"
+        memory: 3Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      runAsNonRoot: true
+      runAsUser: 1000660000
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /target
+      name: plugins
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-nmff2
+      readOnly: true
+  nodeName: 192.168.193.21
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext:
+    fsGroup: 1000660000
+    seLinuxOptions:
+      level: s0:c26,c5
+    seccompProfile:
+      type: RuntimeDefault
+  serviceAccount: velero
+  serviceAccountName: velero
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoSchedule
+    key: node.kubernetes.io/memory-pressure
+    operator: Exists
+  volumes:
+  - emptyDir: {}
+    name: plugins
+  - emptyDir: {}
+    name: scratch
+  - emptyDir: {}
+    name: certs
+  - name: kube-api-access-nmff2
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+      - configMap:
+          items:
+          - key: service-ca.crt
+            path: service-ca.crt
+          name: openshift-service-ca.crt
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T15:47:00Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T15:47:05Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T15:47:05Z"
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T15:46:48Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: cri-o://77df8da3822f274991978c5fec56d0c5098c3789f058b7f3e4823b6ac031a46e
+    image: registry.redhat.io/oadp/oadp-velero-rhel9@sha256:9ab6bd1c70cb1fb4a641ba977e9b8ebfa727109756091e2e74026f5ecdc9841f
+    imageID: registry.redhat.io/oadp/oadp-velero-rhel9@sha256:9ab6bd1c70cb1fb4a641ba977e9b8ebfa727109756091e2e74026f5ecdc9841f
+    lastState: {}
+    name: velero
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2024-06-11T15:47:05Z"
+  hostIP: 192.168.193.21
+  initContainerStatuses:
+  - containerID: cri-o://66ce0e23d3852aeb51f4213a36bcd53c8a6e3dd236e3a4cd5eaf9b758fba8675
+    image: registry.redhat.io/oadp/oadp-velero-plugin-rhel9@sha256:8cf7db63e1a44782d7b069e2aa430230f3eede5713c4b1875f85293ec0231b46
+    imageID: registry.redhat.io/oadp/oadp-velero-plugin-rhel9@sha256:8cf7db63e1a44782d7b069e2aa430230f3eede5713c4b1875f85293ec0231b46
+    lastState: {}
+    name: openshift-velero-plugin
+    ready: true
+    restartCount: 0
+    state:
+      terminated:
+        containerID: cri-o://66ce0e23d3852aeb51f4213a36bcd53c8a6e3dd236e3a4cd5eaf9b758fba8675
+        exitCode: 0
+        finishedAt: "2024-06-11T15:46:53Z"
+        reason: Completed
+        startedAt: "2024-06-11T15:46:53Z"
+  - containerID: cri-o://1402d99d49e74aee804cfe4e7e1b5ec04c65069c7fed9314aa18efd94b1f043f
+    image: registry.redhat.io/oadp/oadp-velero-plugin-for-aws-rhel9@sha256:da4b96d00c3399eb1e988fe32177884f6c6c6050415189c1d9f8fc997e043adf
+    imageID: registry.redhat.io/oadp/oadp-velero-plugin-for-aws-rhel9@sha256:da4b96d00c3399eb1e988fe32177884f6c6c6050415189c1d9f8fc997e043adf
+    lastState: {}
+    name: velero-plugin-for-aws
+    ready: true
+    restartCount: 0
+    state:
+      terminated:
+        containerID: cri-o://1402d99d49e74aee804cfe4e7e1b5ec04c65069c7fed9314aa18efd94b1f043f
+        exitCode: 0
+        finishedAt: "2024-06-11T15:46:56Z"
+        reason: Completed
+        startedAt: "2024-06-11T15:46:56Z"
+  - containerID: cri-o://8ea8383ba49265c055eae09683e766d8282e0a7e6b17aed1abb3b54d7d9f2d1e
+    image: registry.redhat.io/oadp/oadp-velero-plugin-for-csi-rhel9@sha256:095c5131f86c0c87b3e521d1636cf89d671c0c660d1b40b32baf210e7250776e
+    imageID: registry.redhat.io/oadp/oadp-velero-plugin-for-csi-rhel9@sha256:095c5131f86c0c87b3e521d1636cf89d671c0c660d1b40b32baf210e7250776e
+    lastState: {}
+    name: velero-plugin-for-csi
+    ready: true
+    restartCount: 0
+    state:
+      terminated:
+        containerID: cri-o://8ea8383ba49265c055eae09683e766d8282e0a7e6b17aed1abb3b54d7d9f2d1e
+        exitCode: 0
+        finishedAt: "2024-06-11T15:47:00Z"
+        reason: Completed
+        startedAt: "2024-06-11T15:46:59Z"
+  phase: Running
+  podIP: 172.21.212.76
+  podIPs:
+  - ip: 172.21.212.76
+  qosClass: Burstable
+  startTime: "2024-06-11T15:46:47Z"

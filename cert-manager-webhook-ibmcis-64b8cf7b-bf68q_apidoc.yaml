@@ -1,0 +1,198 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    cni.projectcalico.org/containerID: c90aa47f03a1b7bb184fb7df48a72d0fe7fb63f0d63749c8d5686f3b76f9f504
+    cni.projectcalico.org/podIP: 172.21.45.75/32
+    cni.projectcalico.org/podIPs: 172.21.45.75/32
+    k8s.v1.cni.cncf.io/network-status: |-
+      [{
+          "name": "k8s-pod-network",
+          "ips": [
+              "172.21.45.75"
+          ],
+          "default": true,
+          "dns": {}
+      }]
+    openshift.io/scc: restricted-v2
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+  creationTimestamp: "2024-06-11T15:00:17Z"
+  generateName: cert-manager-webhook-ibmcis-64b8cf7b-
+  labels:
+    app: cert-manager-webhook-ibmcis
+    pod-template-hash: 64b8cf7b
+    release: cert-manager-webhook-ibmcis
+  name: cert-manager-webhook-ibmcis-64b8cf7b-bf68q
+  namespace: cert-manager-webhook-ibmcis
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: cert-manager-webhook-ibmcis-64b8cf7b
+    uid: 607a65c8-cba3-44ea-8d2a-8c62c49ba5b5
+  resourceVersion: "128068609"
+  uid: 506b3092-b61d-4f6b-ac2a-c0cec0706ea8
+spec:
+  containers:
+  - args:
+    - --tls-cert-file=/tls/tls.crt
+    - --tls-private-key-file=/tls/tls.key
+    - --secure-port=6443
+    env:
+    - name: GROUP_NAME
+      value: acme.borup.work
+    - name: IC_API_KEY
+      valueFrom:
+        secretKeyRef:
+          key: api-token
+          name: ibmcis-credentials
+    image: icr.io/cr-controlplane-release/cert-manager-webhook-ibmcis:1.0.3-amd64
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      failureThreshold: 3
+      httpGet:
+        path: /healthz
+        port: https
+        scheme: HTTPS
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 5
+    name: cert-manager-webhook-ibmcis
+    ports:
+    - containerPort: 6443
+      name: https
+      protocol: TCP
+    readinessProbe:
+      failureThreshold: 3
+      httpGet:
+        path: /healthz
+        port: https
+        scheme: HTTPS
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 5
+    resources:
+      limits:
+        cpu: 100m
+        memory: 100Mi
+      requests:
+        cpu: 10m
+        memory: 50Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      privileged: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 1000700000
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /tls
+      name: certs
+      readOnly: true
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-9zbh5
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  imagePullSecrets:
+  - name: controlplane-imagepullsecret
+  - name: cert-manager-webhook-ibmcis-dockercfg-fpbwr
+  nodeName: 192.168.193.20
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext:
+    fsGroup: 1000700000
+    runAsNonRoot: true
+    seLinuxOptions:
+      level: s0:c26,c25
+    seccompProfile:
+      type: RuntimeDefault
+  serviceAccount: cert-manager-webhook-ibmcis
+  serviceAccountName: cert-manager-webhook-ibmcis
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoSchedule
+    key: node.kubernetes.io/memory-pressure
+    operator: Exists
+  volumes:
+  - name: certs
+    secret:
+      defaultMode: 420
+      secretName: cert-manager-webhook-ibmcis-webhook-tls
+  - name: kube-api-access-9zbh5
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+      - configMap:
+          items:
+          - key: service-ca.crt
+            path: service-ca.crt
+          name: openshift-service-ca.crt
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T15:00:16Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T15:00:27Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T15:00:27Z"
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T15:00:17Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: cri-o://67ce69f8a6f7a8a776d261655d5e3ec80b68d61fcb04f9c06ce9d8e2b5fcf0e4
+    image: icr.io/cr-controlplane-release/cert-manager-webhook-ibmcis:1.0.3-amd64
+    imageID: icr.io/cr-controlplane-release/cert-manager-webhook-ibmcis@sha256:8709a84686131880fedb14d841c87ffed8a5a5aadba5e7f4e1444afe0a9416c0
+    lastState: {}
+    name: cert-manager-webhook-ibmcis
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2024-06-11T15:00:21Z"
+  hostIP: 192.168.193.20
+  phase: Running
+  podIP: 172.21.45.75
+  podIPs:
+  - ip: 172.21.45.75
+  qosClass: Burstable
+  startTime: "2024-06-11T15:00:16Z"

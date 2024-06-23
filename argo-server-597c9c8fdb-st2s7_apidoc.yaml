@@ -1,0 +1,192 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    cni.projectcalico.org/containerID: 1b36642636612ab97dfe2710918037ab9a065cc51ff064bb6ee21b7d6cb029d6
+    cni.projectcalico.org/podIP: 172.21.60.10/32
+    cni.projectcalico.org/podIPs: 172.21.60.10/32
+    k8s.v1.cni.cncf.io/network-status: |-
+      [{
+          "name": "k8s-pod-network",
+          "ips": [
+              "172.21.60.10"
+          ],
+          "default": true,
+          "dns": {}
+      }]
+    openshift.io/scc: restricted-v2
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+  creationTimestamp: "2024-06-11T16:17:11Z"
+  generateName: argo-server-597c9c8fdb-
+  labels:
+    app.kubernetes.io/component: server
+    app.kubernetes.io/instance: argo-wf-ibmcloud
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: argo-workflows-server
+    app.kubernetes.io/part-of: argo-workflows
+    app.kubernetes.io/version: v3.5.5
+    helm.sh/chart: argo-workflows-0.40.14
+    pod-template-hash: 597c9c8fdb
+  name: argo-server-597c9c8fdb-st2s7
+  namespace: sretools
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: argo-server-597c9c8fdb
+    uid: 6f8caee5-ae30-4be3-9261-6309d1c1de26
+  resourceVersion: "128191269"
+  uid: 6235c537-ae4c-4457-b332-8abfd20c6b33
+spec:
+  containers:
+  - args:
+    - server
+    - --configmap=argo-workflow-controller-configmap
+    - --auth-mode
+    - sso
+    - --auth-mode
+    - client
+    - --secure=false
+    - --loglevel
+    - debug
+    - --gloglevel
+    - "0"
+    - --log-format
+    - text
+    env:
+    - name: IN_CLUSTER
+      value: "true"
+    - name: ARGO_NAMESPACE
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.namespace
+    - name: BASE_HREF
+      value: /
+    image: quay.io/argoproj/argocli:v3.5.5
+    imagePullPolicy: Always
+    name: argo-server
+    ports:
+    - containerPort: 2746
+      name: web
+      protocol: TCP
+    readinessProbe:
+      failureThreshold: 3
+      httpGet:
+        path: /
+        port: 2746
+        scheme: HTTP
+      initialDelaySeconds: 10
+      periodSeconds: 20
+      successThreshold: 1
+      timeoutSeconds: 1
+    resources: {}
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: false
+      runAsNonRoot: true
+      runAsUser: 1000730000
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /tmp
+      name: tmp
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-p9jlc
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  imagePullSecrets:
+  - name: argo-server-dockercfg-m9lds
+  nodeName: 192.168.194.21
+  nodeSelector:
+    kubernetes.io/os: linux
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext:
+    fsGroup: 1000730000
+    seLinuxOptions:
+      level: s0:c27,c14
+    seccompProfile:
+      type: RuntimeDefault
+  serviceAccount: argo-server
+  serviceAccountName: argo-server
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - emptyDir: {}
+    name: tmp
+  - name: kube-api-access-p9jlc
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+      - configMap:
+          items:
+          - key: service-ca.crt
+            path: service-ca.crt
+          name: openshift-service-ca.crt
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T16:17:10Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T16:17:31Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T16:17:31Z"
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T16:17:11Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: cri-o://d6103e60d9484a90fb768a1fc48ee0521c7341c4380ec66894f5e8f3054b41ef
+    image: quay.io/argoproj/argocli:v3.5.5
+    imageID: quay.io/argoproj/argocli@sha256:89aa39e912baaad5571ea92629cd1a55053dca47b9084b8ebebd5dd851833201
+    lastState: {}
+    name: argo-server
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2024-06-11T16:17:18Z"
+  hostIP: 192.168.194.21
+  phase: Running
+  podIP: 172.21.60.10
+  podIPs:
+  - ip: 172.21.60.10
+  qosClass: BestEffort
+  startTime: "2024-06-11T16:17:10Z"

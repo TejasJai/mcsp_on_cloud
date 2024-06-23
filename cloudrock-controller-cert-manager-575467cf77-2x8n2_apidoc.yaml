@@ -1,0 +1,183 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    cni.projectcalico.org/containerID: 0e9acef66dcf3f452b1ca876f2e3c127429b01d6d8f5598f904d445f3935a0ac
+    cni.projectcalico.org/podIP: 172.21.164.138/32
+    cni.projectcalico.org/podIPs: 172.21.164.138/32
+    k8s.v1.cni.cncf.io/network-status: |-
+      [{
+          "name": "k8s-pod-network",
+          "ips": [
+              "172.21.164.138"
+          ],
+          "default": true,
+          "dns": {}
+      }]
+    openshift.io/scc: restricted-v2
+    prometheus.io/path: /metrics
+    prometheus.io/port: "9402"
+    prometheus.io/scrape: "true"
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+  creationTimestamp: "2024-06-11T15:00:17Z"
+  generateName: cloudrock-controller-cert-manager-575467cf77-
+  labels:
+    app: cert-manager
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: cloudrock-controller
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: cert-manager
+    app.kubernetes.io/version: v1.14.4
+    helm.sh/chart: cert-manager-v1.14.4
+    pod-template-hash: 575467cf77
+  name: cloudrock-controller-cert-manager-575467cf77-2x8n2
+  namespace: cert-manager
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: cloudrock-controller-cert-manager-575467cf77
+    uid: 18116729-604f-4a71-a083-1a2af12b1c5f
+  resourceVersion: "128068429"
+  uid: 94cb68ab-a655-4f3e-827c-42cad9d62907
+spec:
+  containers:
+  - args:
+    - --v=2
+    - --cluster-resource-namespace=$(POD_NAMESPACE)
+    - --leader-election-namespace=kube-system
+    - --acme-http01-solver-image=quay.io/jetstack/cert-manager-acmesolver:v1.14.4
+    - --max-concurrent-challenges=60
+    - --dns01-recursive-nameservers=9.9.9.9:53,8.8.8.8:53,1.1.1.1:53
+    env:
+    - name: POD_NAMESPACE
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.namespace
+    image: quay.io/jetstack/cert-manager-controller:v1.14.4
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      failureThreshold: 8
+      httpGet:
+        path: /livez
+        port: http-healthz
+        scheme: HTTP
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 15
+    name: cert-manager-controller
+    ports:
+    - containerPort: 9402
+      name: http-metrics
+      protocol: TCP
+    - containerPort: 9403
+      name: http-healthz
+      protocol: TCP
+    resources: {}
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: true
+      runAsUser: 1000670000
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-5549l
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: false
+  imagePullSecrets:
+  - name: cloudrock-controller-cert-manager-dockercfg-q9mxg
+  nodeName: 192.168.194.18
+  nodeSelector:
+    kubernetes.io/os: linux
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext:
+    fsGroup: 1000670000
+    runAsNonRoot: true
+    seLinuxOptions:
+      level: s0:c26,c10
+    seccompProfile:
+      type: RuntimeDefault
+  serviceAccount: cloudrock-controller-cert-manager
+  serviceAccountName: cloudrock-controller-cert-manager
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: kube-api-access-5549l
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+      - configMap:
+          items:
+          - key: service-ca.crt
+            path: service-ca.crt
+          name: openshift-service-ca.crt
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T15:00:16Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T15:00:20Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T15:00:20Z"
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T15:00:17Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: cri-o://88369ba289c3b320630fc19b67d4937004bc6b88f85d312f80e0f06baa07b2bc
+    image: quay.io/jetstack/cert-manager-controller:v1.14.4
+    imageID: quay.io/jetstack/cert-manager-controller@sha256:5cffa969fd30ce6a760994d30e7cccb3626abc8015d813de52f8cfa9ff862de9
+    lastState: {}
+    name: cert-manager-controller
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2024-06-11T15:00:20Z"
+  hostIP: 192.168.194.18
+  phase: Running
+  podIP: 172.21.164.138
+  podIPs:
+  - ip: 172.21.164.138
+  qosClass: BestEffort
+  startTime: "2024-06-11T15:00:16Z"

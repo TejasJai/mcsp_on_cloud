@@ -1,0 +1,150 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    cni.projectcalico.org/containerID: 2c2cc96e0d1e84a33e0d2b916174b34089db35b69be0dc6f47b6383043e83a85
+    cni.projectcalico.org/podIP: ""
+    cni.projectcalico.org/podIPs: ""
+    k8s.v1.cni.cncf.io/network-status: |-
+      [{
+          "name": "k8s-pod-network",
+          "ips": [
+              "172.21.7.186"
+          ],
+          "default": true,
+          "dns": {}
+      }]
+    openshift.io/scc: restricted-v2
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+  creationTimestamp: "2024-06-23T00:00:00Z"
+  generateName: nessus-backup-reconcile-job-28651680-
+  labels:
+    batch.kubernetes.io/controller-uid: 51255bf3-bedb-4014-8bb8-0672ffcc6f66
+    batch.kubernetes.io/job-name: nessus-backup-reconcile-job-28651680
+    controller-uid: 51255bf3-bedb-4014-8bb8-0672ffcc6f66
+    job-name: nessus-backup-reconcile-job-28651680
+  name: nessus-backup-reconcile-job-28651680-hhjfk
+  namespace: ibm-services-system
+  ownerReferences:
+  - apiVersion: batch/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Job
+    name: nessus-backup-reconcile-job-28651680
+    uid: 51255bf3-bedb-4014-8bb8-0672ffcc6f66
+  resourceVersion: "150620300"
+  uid: ece2023b-1b8e-428c-96d7-977d9b49b198
+spec:
+  containers:
+  - image: us.icr.io/armada-csutil/sos-backup-cleaner:189-0b6842644d3b0a9d87c34880f3811bc5b114837e
+    imagePullPolicy: Always
+    name: nessus-backup-reconcile
+    resources: {}
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      runAsNonRoot: true
+      runAsUser: 1000720000
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-8vwvs
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  imagePullSecrets:
+  - name: kubeprofiles-registry
+  nodeName: 192.168.192.17
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Never
+  schedulerName: default-scheduler
+  securityContext:
+    fsGroup: 1000720000
+    seLinuxOptions:
+      level: s0:c27,c9
+    seccompProfile:
+      type: RuntimeDefault
+  serviceAccount: nessus-agent
+  serviceAccountName: nessus-agent
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: kube-api-access-8vwvs
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+      - configMap:
+          items:
+          - key: service-ca.crt
+            path: service-ca.crt
+          name: openshift-service-ca.crt
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-23T00:00:03Z"
+    reason: PodCompleted
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-23T00:00:11Z"
+    reason: PodCompleted
+    status: "False"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-23T00:00:11Z"
+    reason: PodCompleted
+    status: "False"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-23T00:00:00Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: cri-o://ad3606f3eda56fedda5a7c12fd06e7f6082c7a562fc3d07f86877a636dceaead
+    image: us.icr.io/armada-csutil/sos-backup-cleaner:189-0b6842644d3b0a9d87c34880f3811bc5b114837e
+    imageID: us.icr.io/armada-csutil/sos-backup-cleaner@sha256:083010d27ecc29049e8944bcbd5c28ee0153ae8125ef4bf8f2a9592d268d313c
+    lastState: {}
+    name: nessus-backup-reconcile
+    ready: false
+    restartCount: 0
+    started: false
+    state:
+      terminated:
+        containerID: cri-o://ad3606f3eda56fedda5a7c12fd06e7f6082c7a562fc3d07f86877a636dceaead
+        exitCode: 0
+        finishedAt: "2024-06-23T00:00:10Z"
+        reason: Completed
+        startedAt: "2024-06-23T00:00:10Z"
+  hostIP: 192.168.192.17
+  phase: Succeeded
+  podIP: 172.21.7.186
+  podIPs:
+  - ip: 172.21.7.186
+  qosClass: BestEffort
+  startTime: "2024-06-23T00:00:03Z"

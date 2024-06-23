@@ -1,0 +1,431 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    cni.projectcalico.org/containerID: 02699ccf944b1e6cfeab3c919c9a688de97203f961d4eb2080ca8fd0584ac264
+    cni.projectcalico.org/podIP: 172.21.154.19/32
+    cni.projectcalico.org/podIPs: 172.21.154.19/32
+    k8s.v1.cni.cncf.io/network-status: |-
+      [{
+          "name": "k8s-pod-network",
+          "ips": [
+              "172.21.154.19"
+          ],
+          "default": true,
+          "dns": {}
+      }]
+    openshift.io/scc: privileged
+  creationTimestamp: "2024-06-11T17:42:52Z"
+  generateName: sos-tools-b5dd65fc4-
+  labels:
+    app: sos-tools
+    cname: staging
+    ctype: public
+    name: sos-tools
+    pod-template-hash: b5dd65fc4
+    provider: ibm
+    region: us-east
+    resource: sos-tools
+    resource-type: deployment
+    scope: a_f54c77c51e9e4f189a7d1de589b2e203
+  name: sos-tools-b5dd65fc4-glrmr
+  namespace: ibm-services-system
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: sos-tools-b5dd65fc4
+    uid: eed32df7-cb7f-4640-92ac-bef3daf3bc52
+  resourceVersion: "132827263"
+  uid: 6e2f4eaf-da67-4776-8f7b-eb0919547c89
+spec:
+  containers:
+  - env:
+    - name: READINESS_TEST_IP
+      value: 10.143.108.65
+    envFrom:
+    - secretRef:
+        name: sos-vpn-secret
+    image: us.icr.io/armada-csutil/sos-vpn-client:57-288bcc28574f5d3ea79fc723af3db4e87c4f4db1
+    imagePullPolicy: Always
+    livenessProbe:
+      exec:
+        command:
+        - ./check-vpn.sh
+      failureThreshold: 3
+      initialDelaySeconds: 300
+      periodSeconds: 300
+      successThreshold: 1
+      timeoutSeconds: 7
+    name: vpn-client
+    readinessProbe:
+      exec:
+        command:
+        - /bin/sh
+        - -c
+        - touch /vpn/READY
+      failureThreshold: 1
+      initialDelaySeconds: 10
+      periodSeconds: 300
+      successThreshold: 3
+      timeoutSeconds: 7
+    resources:
+      limits:
+        cpu: 500m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 64Mi
+    securityContext:
+      privileged: true
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /sos-config
+      name: sos-config
+    - mountPath: /vpn
+      name: vpn-check-volume
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-m2vjp
+      readOnly: true
+  - image: us.icr.io/armada-csutil/sos-fim-proxy:86-a919493fa8cc92e4a22073b47d9c77b3ad63a754
+    imagePullPolicy: Always
+    livenessProbe:
+      exec:
+        command:
+        - echo
+        - '"DLC is disabled"'
+      failureThreshold: 3
+      initialDelaySeconds: 60
+      periodSeconds: 30
+      successThreshold: 1
+      timeoutSeconds: 1
+    name: dlc-proxy
+    ports:
+    - containerPort: 32500
+      protocol: TCP
+    resources:
+      limits:
+        cpu: "1"
+        memory: 500Mi
+      requests:
+        cpu: 100m
+        memory: 64Mi
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /etc/nginx/nginx.conf
+      name: dlc-proxy-config
+      readOnly: true
+      subPath: nginx.conf
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-m2vjp
+      readOnly: true
+  - env:
+    - name: SOS_EPS_FQDN
+      value: 10.142.84.31
+    - name: SOS_EPS_PORT
+      value: "514"
+    image: us.icr.io/armada-csutil/syslog-forwarder:83-bd7b0b56b7c7c073361df94761b2878b9e07e2f7
+    imagePullPolicy: Always
+    livenessProbe:
+      failureThreshold: 3
+      initialDelaySeconds: 60
+      periodSeconds: 30
+      successThreshold: 1
+      tcpSocket:
+        port: 10514
+      timeoutSeconds: 1
+    name: syslog-forwarder
+    resources:
+      limits:
+        cpu: 500m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 64Mi
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-m2vjp
+      readOnly: true
+  - env:
+    - name: HUB_HOSTNAME
+      value: bu203-fimprod2.fim.sos.ibm.com
+    image: us.icr.io/armada-csutil/sos-fim-proxy:86-a919493fa8cc92e4a22073b47d9c77b3ad63a754
+    imagePullPolicy: Always
+    livenessProbe:
+      exec:
+        command:
+        - echo
+        - '"CHANGE_TRACKER is disabled"'
+      failureThreshold: 3
+      initialDelaySeconds: 60
+      periodSeconds: 30
+      successThreshold: 1
+      timeoutSeconds: 1
+    name: fim-proxy
+    resources:
+      limits:
+        cpu: "1"
+        memory: 500Mi
+      requests:
+        cpu: 100m
+        memory: 64Mi
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /etc/nginx/nginx.conf
+      name: fim-proxy-config
+      readOnly: true
+      subPath: nginx.conf
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-m2vjp
+      readOnly: true
+  - image: us.icr.io/armada-master/pause:3.9
+    imagePullPolicy: Always
+    name: nessus-proxy
+    ports:
+    - containerPort: 3128
+      protocol: TCP
+    resources:
+      limits:
+        cpu: 200m
+        memory: 16Mi
+      requests:
+        cpu: 100m
+        memory: 8Mi
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-m2vjp
+      readOnly: true
+  - image: us.icr.io/armada-csutil/sos-fim-proxy:86-a919493fa8cc92e4a22073b47d9c77b3ad63a754
+    imagePullPolicy: Always
+    livenessProbe:
+      exec:
+        command:
+        - echo
+        - '"SOS_W10_PROXY is disabled"'
+      failureThreshold: 3
+      initialDelaySeconds: 60
+      periodSeconds: 30
+      successThreshold: 1
+      timeoutSeconds: 1
+    name: sos-w10-proxy
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 50m
+        memory: 16Mi
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /etc/nginx/nginx.conf
+      name: sos-w10-proxy-config
+      readOnly: true
+      subPath: nginx.conf
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-m2vjp
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  hostAliases:
+  - hostnames:
+    - sos-iemtop01
+    - sos-iemtop01.gk.isops.ibm.com
+    ip: 10.143.108.74
+  - hostnames:
+    - ustw3-in00-is02ustw3
+    - ustw3-in00-is02.gk.sso.ad.isops.ibm.com
+    - sos-iemtop02
+    - sos-iemtop02.gk.isops.ibm.com
+    ip: 10.143.108.75
+  - hostnames:
+    - sos-iemtop03
+    - sos-iemtop03.gk.isops.ibm.com
+    ip: 10.143.108.76
+  - hostnames:
+    - sos-iemtop04
+    - sos-iemtop04.gk.isops.ibm.com
+    ip: 10.143.108.77
+  - hostnames:
+    - sos-iemtop05
+    - sos-iemtop05.gk.isops.ibm.com
+    ip: 10.143.108.78
+  - hostnames:
+    - sos-iemtop06
+    - sos-iemtop06.gk.isops.ibm.com
+    ip: 10.143.108.79
+  - hostnames:
+    - siem04s02-dlcsp-lb.sos.ibm.com
+    ip: 10.142.84.31
+  imagePullSecrets:
+  - name: kubeprofiles-registry
+  nodeName: 192.168.193.24
+  preemptionPolicy: PreemptLowerPriority
+  priority: 2000000000
+  priorityClassName: system-cluster-critical
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 60
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoSchedule
+    key: node.kubernetes.io/memory-pressure
+    operator: Exists
+  volumes:
+  - name: sos-config
+    secret:
+      defaultMode: 420
+      secretName: sos-vpn-secret
+  - configMap:
+      defaultMode: 420
+      name: dlc-proxy
+    name: dlc-proxy-config
+  - configMap:
+      defaultMode: 420
+      name: fim-proxy
+    name: fim-proxy-config
+  - configMap:
+      defaultMode: 420
+      name: sos-w10-proxy
+    name: sos-w10-proxy-config
+  - emptyDir: {}
+    name: vpn-check-volume
+  - name: kube-api-access-m2vjp
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+      - configMap:
+          items:
+          - key: service-ca.crt
+            path: service-ca.crt
+          name: openshift-service-ca.crt
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T17:42:52Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T17:44:17Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T17:44:17Z"
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T17:42:52Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: cri-o://bd958add8bd26bb3edd3e7357d0107722ed9741de2489f7d7f92f647fd094e0e
+    image: us.icr.io/armada-csutil/sos-fim-proxy:86-a919493fa8cc92e4a22073b47d9c77b3ad63a754
+    imageID: us.icr.io/armada-csutil/sos-fim-proxy@sha256:9e5d235dc147245ff8c6afa74cca7e48d4797b632f8a6187cde34821bdb43521
+    lastState: {}
+    name: dlc-proxy
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2024-06-11T17:42:58Z"
+  - containerID: cri-o://d67c0eca510177ff16f7525b73fd916e835ae81244e0460536f98d71f5d8f49d
+    image: us.icr.io/armada-csutil/sos-fim-proxy:86-a919493fa8cc92e4a22073b47d9c77b3ad63a754
+    imageID: us.icr.io/armada-csutil/sos-fim-proxy@sha256:9e5d235dc147245ff8c6afa74cca7e48d4797b632f8a6187cde34821bdb43521
+    lastState: {}
+    name: fim-proxy
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2024-06-11T17:43:13Z"
+  - containerID: cri-o://71508bc516488d949e7791525f67171116b6df04114182093387ba1ced390cf3
+    image: us.icr.io/armada-master/pause:3.9
+    imageID: us.icr.io/armada-master/pause@sha256:19e56a1ab938e3648d01346eded22dc5edd4cb341642bb6954b9fa5dbaacd964
+    lastState: {}
+    name: nessus-proxy
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2024-06-11T17:43:13Z"
+  - containerID: cri-o://d789bfd6355a8bed74ba7986d2d7fcdfb5a13e3f65684b9b34b3961a08fc9992
+    image: us.icr.io/armada-csutil/sos-fim-proxy:86-a919493fa8cc92e4a22073b47d9c77b3ad63a754
+    imageID: us.icr.io/armada-csutil/sos-fim-proxy@sha256:9e5d235dc147245ff8c6afa74cca7e48d4797b632f8a6187cde34821bdb43521
+    lastState: {}
+    name: sos-w10-proxy
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2024-06-11T17:43:14Z"
+  - containerID: cri-o://7703db97e4293c32bd99b5646fcd3f1a8cd622689df64dec399bf6e6b329853d
+    image: us.icr.io/armada-csutil/syslog-forwarder:83-bd7b0b56b7c7c073361df94761b2878b9e07e2f7
+    imageID: us.icr.io/armada-csutil/syslog-forwarder@sha256:570fdb0bad615a4564058efe858f0209250dcf3d05004432048455415fd0daf0
+    lastState:
+      terminated:
+        containerID: cri-o://d651c99fb7d2d7dc73f28e704a7b6626cef5ad0d8f90ee70e69c91e7701563ed
+        exitCode: 137
+        finishedAt: "2024-06-13T23:49:22Z"
+        reason: OOMKilled
+        startedAt: "2024-06-11T17:43:12Z"
+    name: syslog-forwarder
+    ready: true
+    restartCount: 1
+    started: true
+    state:
+      running:
+        startedAt: "2024-06-13T23:49:23Z"
+  - containerID: cri-o://34b4dee318cd9719f05752420d8f08832c59f42911c15f9dc5f03dcac65b40f5
+    image: us.icr.io/armada-csutil/sos-vpn-client:57-288bcc28574f5d3ea79fc723af3db4e87c4f4db1
+    imageID: us.icr.io/armada-csutil/sos-vpn-client@sha256:727c013b6d1e986420a8d81d11ec4d5ab4ceef4916cf6668cd527cc2835a4821
+    lastState: {}
+    name: vpn-client
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2024-06-11T17:42:55Z"
+  hostIP: 192.168.193.24
+  phase: Running
+  podIP: 172.21.154.19
+  podIPs:
+  - ip: 172.21.154.19
+  qosClass: Burstable
+  startTime: "2024-06-11T17:42:52Z"

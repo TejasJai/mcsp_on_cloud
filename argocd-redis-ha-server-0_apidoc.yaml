@@ -1,0 +1,354 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    checksum/init-config: 69130412bda04eacad3530cb7bcf26cf121401e725e15d0959dd71a7380afe75
+    cni.projectcalico.org/containerID: 014b0ddf26b00dd856792cebe770f5e73316a8b891c4cd1101bcdf96df03ece7
+    cni.projectcalico.org/podIP: 172.21.89.143/32
+    cni.projectcalico.org/podIPs: 172.21.89.143/32
+    k8s.v1.cni.cncf.io/network-status: |-
+      [{
+          "name": "k8s-pod-network",
+          "ips": [
+              "172.21.89.143"
+          ],
+          "default": true,
+          "dns": {}
+      }]
+    openshift.io/scc: restricted-v2
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+  creationTimestamp: "2024-06-11T15:16:30Z"
+  generateName: argocd-redis-ha-server-
+  labels:
+    app.kubernetes.io/name: argocd-redis-ha
+    bcdr-candidate: t
+    by-squad: mcsp-argocd
+    component-name: argocd-resource
+    controller-revision-hash: argocd-redis-ha-server-6bb76bfc75
+    for-product: all
+    statefulset.kubernetes.io/pod-name: argocd-redis-ha-server-0
+  name: argocd-redis-ha-server-0
+  namespace: argocd-manager
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: StatefulSet
+    name: argocd-redis-ha-server
+    uid: dc1e4d58-2016-4b8a-ab37-5b3ae4efcad6
+  resourceVersion: "128098301"
+  uid: af152207-fae8-47b2-9f09-c5c66452a8fa
+spec:
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: argocd-redis-ha
+        topologyKey: kubernetes.io/hostname
+  automountServiceAccountToken: false
+  containers:
+  - args:
+    - /data/conf/redis.conf
+    command:
+    - redis-server
+    image: icr.io/automation-saas-platform/cicd/redis:7.2.4-alpine-patched
+    imagePullPolicy: IfNotPresent
+    lifecycle:
+      preStop:
+        exec:
+          command:
+          - /bin/sh
+          - /readonly-config/trigger-failover-if-master.sh
+    livenessProbe:
+      exec:
+        command:
+        - sh
+        - -c
+        - /health/redis_liveness.sh
+      failureThreshold: 5
+      initialDelaySeconds: 30
+      periodSeconds: 15
+      successThreshold: 1
+      timeoutSeconds: 15
+    name: redis
+    ports:
+    - containerPort: 6379
+      name: redis
+      protocol: TCP
+    readinessProbe:
+      exec:
+        command:
+        - sh
+        - -c
+        - /health/redis_readiness.sh
+      failureThreshold: 5
+      initialDelaySeconds: 30
+      periodSeconds: 15
+      successThreshold: 1
+      timeoutSeconds: 15
+    resources:
+      limits:
+        cpu: 100m
+        memory: 512Mi
+      requests:
+        cpu: 50m
+        memory: 128Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      privileged: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 1000650000
+      seccompProfile:
+        type: RuntimeDefault
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /readonly-config
+      name: config
+      readOnly: true
+    - mountPath: /data
+      name: data
+    - mountPath: /health
+      name: health
+  - args:
+    - /data/conf/sentinel.conf
+    command:
+    - redis-sentinel
+    image: icr.io/automation-saas-platform/cicd/redis:7.2.4-alpine-patched
+    imagePullPolicy: IfNotPresent
+    lifecycle: {}
+    livenessProbe:
+      exec:
+        command:
+        - sh
+        - -c
+        - /health/sentinel_liveness.sh
+      failureThreshold: 5
+      initialDelaySeconds: 30
+      periodSeconds: 15
+      successThreshold: 1
+      timeoutSeconds: 15
+    name: sentinel
+    ports:
+    - containerPort: 26379
+      name: sentinel
+      protocol: TCP
+    readinessProbe:
+      exec:
+        command:
+        - sh
+        - -c
+        - /health/sentinel_liveness.sh
+      failureThreshold: 5
+      initialDelaySeconds: 30
+      periodSeconds: 15
+      successThreshold: 3
+      timeoutSeconds: 15
+    resources: {}
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      privileged: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 1000650000
+      seccompProfile:
+        type: RuntimeDefault
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /data
+      name: data
+    - mountPath: /health
+      name: health
+  - args:
+    - /readonly-config/fix-split-brain.sh
+    command:
+    - sh
+    env:
+    - name: SENTINEL_ID_0
+      value: 3c0d9c0320bb34888c2df5757c718ce6ca992ce6
+    - name: SENTINEL_ID_1
+      value: 40000915ab58c3fa8fd888fb8b24711944e6cbb4
+    - name: SENTINEL_ID_2
+      value: 2bbec7894d954a8af3bb54d13eaec53cb024e2ca
+    image: icr.io/automation-saas-platform/cicd/redis:7.2.4-alpine-patched
+    imagePullPolicy: IfNotPresent
+    name: split-brain-fix
+    resources: {}
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 1000650000
+      seccompProfile:
+        type: RuntimeDefault
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /readonly-config
+      name: config
+      readOnly: true
+    - mountPath: /data
+      name: data
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  hostname: argocd-redis-ha-server-0
+  imagePullSecrets:
+  - name: argocd-icr-ips
+  initContainers:
+  - args:
+    - /readonly-config/init.sh
+    command:
+    - sh
+    env:
+    - name: SENTINEL_ID_0
+      value: 3c0d9c0320bb34888c2df5757c718ce6ca992ce6
+    - name: SENTINEL_ID_1
+      value: 40000915ab58c3fa8fd888fb8b24711944e6cbb4
+    - name: SENTINEL_ID_2
+      value: 2bbec7894d954a8af3bb54d13eaec53cb024e2ca
+    image: icr.io/automation-saas-platform/cicd/redis:7.2.4-alpine-patched
+    imagePullPolicy: IfNotPresent
+    name: config-init
+    resources: {}
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 1000650000
+      seccompProfile:
+        type: RuntimeDefault
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /readonly-config
+      name: config
+      readOnly: true
+    - mountPath: /data
+      name: data
+  nodeName: 192.168.192.18
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext:
+    fsGroup: 1000650000
+    seLinuxOptions:
+      level: s0:c26,c0
+    seccompProfile:
+      type: RuntimeDefault
+  serviceAccount: argocd-redis-ha
+  serviceAccountName: argocd-redis-ha
+  subdomain: argocd-redis-ha
+  terminationGracePeriodSeconds: 60
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoSchedule
+    key: node.kubernetes.io/memory-pressure
+    operator: Exists
+  volumes:
+  - configMap:
+      defaultMode: 420
+      name: argocd-redis-ha-configmap
+    name: config
+  - configMap:
+      defaultMode: 493
+      name: argocd-redis-ha-health-configmap
+    name: health
+  - emptyDir: {}
+    name: data
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T15:17:33Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T15:18:31Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T15:18:31Z"
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2024-06-11T15:16:30Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: cri-o://9fa47819d0e484acb962351aab6bd67fa1a610c966f0306dc2c2aaef0dfdb7a7
+    image: icr.io/automation-saas-platform/cicd/redis:7.2.4-alpine-patched
+    imageID: icr.io/automation-saas-platform/cicd/redis@sha256:c13e5b6702edbd502cdd740e34626df5c8670ade800c540d8f40489e5983021a
+    lastState: {}
+    name: redis
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2024-06-11T15:17:35Z"
+  - containerID: cri-o://bf00923a1b0fabde3390603c9894ce19754b28a20bba351a1761f581667ef157
+    image: icr.io/automation-saas-platform/cicd/redis:7.2.4-alpine-patched
+    imageID: icr.io/automation-saas-platform/cicd/redis@sha256:c13e5b6702edbd502cdd740e34626df5c8670ade800c540d8f40489e5983021a
+    lastState: {}
+    name: sentinel
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2024-06-11T15:17:38Z"
+  - containerID: cri-o://a62c6776c3c73b6dfc462d2acefc4740a4ebd4405b3f88a931ab9dc5768cf6d9
+    image: icr.io/automation-saas-platform/cicd/redis:7.2.4-alpine-patched
+    imageID: icr.io/automation-saas-platform/cicd/redis@sha256:c13e5b6702edbd502cdd740e34626df5c8670ade800c540d8f40489e5983021a
+    lastState: {}
+    name: split-brain-fix
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2024-06-11T15:17:39Z"
+  hostIP: 192.168.192.18
+  initContainerStatuses:
+  - containerID: cri-o://c430acad3176e992f0cba25aa4784f45eb4884f1ed931af35f6b2534f16382cf
+    image: icr.io/automation-saas-platform/cicd/redis:7.2.4-alpine-patched
+    imageID: icr.io/automation-saas-platform/cicd/redis@sha256:c13e5b6702edbd502cdd740e34626df5c8670ade800c540d8f40489e5983021a
+    lastState: {}
+    name: config-init
+    ready: true
+    restartCount: 0
+    state:
+      terminated:
+        containerID: cri-o://c430acad3176e992f0cba25aa4784f45eb4884f1ed931af35f6b2534f16382cf
+        exitCode: 0
+        finishedAt: "2024-06-11T15:17:32Z"
+        reason: Completed
+        startedAt: "2024-06-11T15:17:32Z"
+  phase: Running
+  podIP: 172.21.89.143
+  podIPs:
+  - ip: 172.21.89.143
+  qosClass: Burstable
+  startTime: "2024-06-11T15:16:30Z"
